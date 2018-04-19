@@ -16,6 +16,7 @@ import os.path
 DB_URL = "mongodb+srv://timostar:Upiter98!1wdb81e2q3r@cluster0-jmonj.mongodb.net/test"
 
 define("port", default=8888, help="run on the given port", type=int)
+define("host", default="0.0.0.0")
 
 
 class Application(tornado.web.Application):
