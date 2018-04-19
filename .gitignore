@@ -1,6 +1,5 @@
 # Bootstrap
 server/templates/bootstrap-4.1.0
-server/static
 
 # Log
 *.log
