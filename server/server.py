@@ -2,6 +2,7 @@
 
 import os
 import xlrd
+import json
 
 import tornado.httpserver
 import tornado.ioloop
@@ -16,7 +17,7 @@ import os.path
 DB_URL = "mongodb+srv://timostar:Upiter98!1wdb81e2q3r@cluster0-jmonj.mongodb.net/test"
 
 define("port", default=8888, help="run on the given port", type=int)
-define("host", default="0.0.0.0")
+# define("host", default="0.0.0.0")
 
 
 class Application(tornado.web.Application):
@@ -69,17 +70,18 @@ class BaseHandler(tornado.web.RequestHandler):
                 content = await resp.content.read()
                 players = xlrd.open_workbook(file_contents=content).sheet_by_index(0)
 
-        d = {"players": []}
+        d = []
         i = 0
 
         for row in players.get_rows():
             if i > 0:
-                player = {"num": int(row[0].value),
-                          "name": row[1].value,
-                          "rating": int(row[2].value),
-                          "r-delta": int(row[3].value),
-                          "city": row[6].value, }
-                d["players"].append(player)
+                name, surname = row[1].value.split()
+                player = {"ID": int(row[0].value),
+                          "Name": name,
+                          "Surname": surname,
+                          "Rating": int(row[2].value),
+                          "City": row[6].value, }
+                d.append(player)
             i += 1
 
         return d
@@ -108,7 +110,7 @@ class AuthLogoutHandler(BaseHandler):
 class PlayersHandler(BaseHandler):
     async def get(self, *args, **kwargs):
         data = await self.load_players()
-        self.render("players.html", players=data["players"])
+        self.render("players.html", players=data)
 
 
 class DownloadHandler(BaseHandler):
@@ -159,14 +161,7 @@ class APIHandler(BaseHandler):
     @api_function
     async def players(self, *args, **kwargs):
         players = await self.load_players()
-        content = "<table><tr><td>№</td><td>Имя</td><td>Рейтинг</td><td>Город</td></tr>"
-        for player in players["players"]:
-            s = (f"<tr><td>{player['num']}</td><td>{player['name']}</td><td>"
-                 f"{player['rating']}</td><td>{player['city']}</td></tr>")
-            content += s
-        content += "</table>"
-        html = f"<html><head></head><body>{content}</body></hmtl>"
-        self.write(html)
+        self.write(json.dumps(players))
 
 
 class ProfileHandler(BaseHandler):
